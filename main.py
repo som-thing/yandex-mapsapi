@@ -20,6 +20,18 @@ def change_spn(flag):
         spn1, spn2 = [str(i) for i in preres]
 
 
+def move(direct):
+    global coords1, coords2
+    if direct == "up":
+        coords1 = str(float(coords1) + float(spn2))
+    elif direct == "down":
+        coords1 = str(float(coords1) - float(spn2))
+    elif direct == "left":
+        coords2 = str(float(coords2) - float(spn1))
+    else:
+        coords2 = str(float(coords2) + float(spn1))
+
+
 def search():
     maps_server = 'http://static-maps.yandex.ru/1.x/'
     map_params = {
@@ -57,6 +69,14 @@ while running:
                 change_spn(True)
             elif event.key == pygame.K_PAGEUP:
                 change_spn(False)
+            elif event.key == pygame.K_UP:
+                move("up")
+            elif event.key == pygame.K_DOWN:
+                move("down")
+            elif event.key == pygame.K_LEFT:
+                move("left")
+            elif event.key == pygame.K_RIGHT:
+                move("right")
             elif event.key == pygame.K_b:  # это 4-ое
                 l = "map"
             elif event.key == pygame.K_n:
