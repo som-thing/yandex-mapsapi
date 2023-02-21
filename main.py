@@ -2,6 +2,7 @@ import sys
 import requests
 import pygame
 import os
+import json
 
 
 pygame.init()
@@ -11,6 +12,7 @@ coords1, coords2 = map(str, "55.752027, 37.613576".split(", "))
 l = "map"
 pt = None
 adrs = ""
+ind = ""
 
 
 def geocode(address):
@@ -26,11 +28,15 @@ def geocode(address):
                 request=req, status=res.status_code, reason=res.reason))
     features = json_res["response"]["GeoObjectCollection"]["featureMember"]
     if features:
-        global spn1, spn2, coords1, coords2, pt, img, adrs
+        global spn1, spn2, coords1, coords2, pt, img, adrs, ind
         coords2, coords1 = features[0]["GeoObject"]["Point"]["pos"].split(" ")
         pt = "{0},{1}".format(coords2, coords1)
         spn1, spn2 = "0.01", "0.01"
         adrs = features[0]["GeoObject"]["metaDataProperty"]["GeocoderMetaData"]["text"]
+        try:
+            ind = features[0]["GeoObject"]["metaDataProperty"]["GeocoderMetaData"]["Address"]["postal_code"]
+        except KeyError:
+            ind = ""
         img = search()
 
 
@@ -97,6 +103,9 @@ done = False
 
 reset_btn = pygame.Rect(10, img.get_height() + 110, 335, 30)
 
+checker = False
+ind_check = pygame.Rect(10, img.get_height() + 75, 20, 20)
+
 FPS = 50
 clock = pygame.time.Clock()
 while running:
@@ -141,7 +150,10 @@ while running:
             if reset_btn.collidepoint(event.pos):
                 pt = None
                 adrs = ""
+                ind = ""
                 img = search()
+            if ind_check.collidepoint(event.pos):
+                checker = not checker
     screen.fill((0, 0, 0))
     screen.blit(img, (50, 0))
     txt_surface = font.render(text, True, color)
@@ -152,8 +164,13 @@ while running:
     txt_surface = font.render('Сброс поискового результата', True, color_active)
     screen.blit(txt_surface, (reset_btn.x + 5, reset_btn.y + 5))
     pygame.draw.rect(screen, color_active, reset_btn, 2)
-    txt_surface = font1.render(("Адрес: " if adrs else "") + adrs, True, color_active)
-    screen.blit(txt_surface, (input_box.x + 5, input_box.y + 52))
+    txt_surface = font1.render(("Адрес: " if adrs else "") + adrs + (f", {ind}" if checker else ""), True, color_active)
+    screen.blit(txt_surface, (input_box.x + 5, input_box.y + 40))
+    pygame.draw.rect(screen, color_active, ind_check, 2)
+    txt_surface = font1.render("Показать почтовый индекс", True, color_active)
+    screen.blit(txt_surface, (40, ind_check.y + 4))
+    if checker:
+        pygame.draw.rect(screen, color_active, (15, img.get_height() + 80, 10, 10))
     pygame.display.flip()
     clock.tick(FPS)
 pygame.quit()
