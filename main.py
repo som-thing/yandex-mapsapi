@@ -8,7 +8,7 @@ import json
 pygame.init()
 apikey = "40d1649f-0493-4b70-98ba-98533de7710b"
 spn1, spn2 = "0.01", "0.01"
-coords1, coords2 = map(str, input().split(", "))
+coords1, coords2 = map(str, "55.752027, 37.613576".split(", "))
 l = "map"
 pt = None
 
@@ -18,8 +18,6 @@ def geocode(address):
     res = requests.get(req)
     if res:
         json_res = res.json()
-        with open('cats_3.json', 'w') as cat_file:
-            json.dump(json_res, cat_file)
     else:
         raise RuntimeError(
             """Ошибка выполнения запроса:
@@ -82,7 +80,7 @@ def terminate():
 font = pygame.font.Font(None, 32)
 pygame.display.set_caption('YL-MAP')
 img = search()
-size = width, height = img.get_width(), img.get_height() + 50
+size = width, height = img.get_width(), img.get_height() + 150
 screen = pygame.display.set_mode(size)
 running = True
 img = search()
@@ -94,6 +92,8 @@ color = color_inactive
 active = False
 text = ''
 done = False
+
+reset_btn = pygame.Rect(10, img.get_height() + 110, 335, 30)
 
 FPS = 50
 clock = pygame.time.Clock()
@@ -136,6 +136,9 @@ while running:
             else:
                 active = False
             color = color_active if active else color_inactive
+            if reset_btn.collidepoint(event.pos):
+                pt = None
+                img = search()
     screen.fill((0, 0, 0))
     screen.blit(img, (0, 0))
     txt_surface = font.render(text, True, color)
@@ -143,6 +146,9 @@ while running:
     input_box.w = width
     screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
     pygame.draw.rect(screen, color, input_box, 2)
+    txt_surface = font.render('Сброс поискового результата', True, color_active)
+    screen.blit(txt_surface, (reset_btn.x + 5, reset_btn.y + 5))
+    pygame.draw.rect(screen, color_active, reset_btn, 2)
     pygame.display.flip()
     clock.tick(FPS)
 pygame.quit()
