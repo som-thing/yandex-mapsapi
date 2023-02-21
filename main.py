@@ -2,7 +2,6 @@ import sys
 import requests
 import pygame
 import os
-import json
 
 
 pygame.init()
@@ -11,6 +10,7 @@ spn1, spn2 = "0.01", "0.01"
 coords1, coords2 = map(str, "55.752027, 37.613576".split(", "))
 l = "map"
 pt = None
+adrs = ""
 
 
 def geocode(address):
@@ -26,10 +26,11 @@ def geocode(address):
                 request=req, status=res.status_code, reason=res.reason))
     features = json_res["response"]["GeoObjectCollection"]["featureMember"]
     if features:
-        global spn1, spn2, coords1, coords2, pt, img
+        global spn1, spn2, coords1, coords2, pt, img, adrs
         coords2, coords1 = features[0]["GeoObject"]["Point"]["pos"].split(" ")
         pt = "{0},{1}".format(coords2, coords1)
         spn1, spn2 = "0.01", "0.01"
+        adrs = features[0]["GeoObject"]["metaDataProperty"]["GeocoderMetaData"]["text"]
         img = search()
 
 
@@ -78,9 +79,10 @@ def terminate():
 
 
 font = pygame.font.Font(None, 32)
+font1 = pygame.font.Font(None, 20)
 pygame.display.set_caption('YL-MAP')
 img = search()
-size = width, height = img.get_width(), img.get_height() + 150
+size = width, height = img.get_width() + 100, img.get_height() + 150
 screen = pygame.display.set_mode(size)
 running = True
 img = search()
@@ -138,9 +140,10 @@ while running:
             color = color_active if active else color_inactive
             if reset_btn.collidepoint(event.pos):
                 pt = None
+                adrs = ""
                 img = search()
     screen.fill((0, 0, 0))
-    screen.blit(img, (0, 0))
+    screen.blit(img, (50, 0))
     txt_surface = font.render(text, True, color)
     width = max(400, txt_surface.get_width() + 10)
     input_box.w = width
@@ -149,6 +152,8 @@ while running:
     txt_surface = font.render('Сброс поискового результата', True, color_active)
     screen.blit(txt_surface, (reset_btn.x + 5, reset_btn.y + 5))
     pygame.draw.rect(screen, color_active, reset_btn, 2)
+    txt_surface = font1.render(("Адрес: " if adrs else "") + adrs, True, color_active)
+    screen.blit(txt_surface, (input_box.x + 5, input_box.y + 52))
     pygame.display.flip()
     clock.tick(FPS)
 pygame.quit()
